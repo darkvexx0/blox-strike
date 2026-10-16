@@ -1,139 +1,110 @@
---// Modern Neon UI & Basic Fly Template (Fix)
+--// Temiz ve Sıfırdan Yazılmış Neon Hub
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
-local localPlayer = Players.LocalPlayer
+local player = Players.LocalPlayer
 
--- Eski menü varsa kaldır
-if CoreGui:FindFirstChild("NeonHubGui") then
-    CoreGui.NeonHubGui:Destroy()
+-- Önceki pencereleri tamamen temizle
+if CoreGui:FindFirstChild("CleanNeonGui") then
+    CoreGui.CleanNeonGui:Destroy()
 end
 
+-- Ana Ekran Katmanı
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "NeonHubGui"
+screenGui.Name = "CleanNeonGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = CoreGui
 
--- Ana Pencere
-local mainFrame = Instance.new("Frame")
-mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 260, 0, 150)
-mainFrame.Position = UDim2.new(0.5, -130, 0.3, 0)
-mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-mainFrame.BorderSizePixel = 0
-mainFrame.Active = true
-mainFrame.Draggable = true
-mainFrame.Parent = screenGui
+-- Ana Çerçeve (Pencere)
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 240, 0, 140)
+frame.Position = UDim2.new(0.5, -120, 0.3, 0)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = screenGui
 
-local stroke = Instance.new("UIStroke")
-stroke.Color = Color3.fromRGB(0, 255, 200)
-stroke.Thickness = 2
-stroke.Parent = mainFrame
-
+-- Köşe Yuvarlama
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim2.new(0, 10)
-corner.Parent = mainFrame
+corner.CornerRadius = UDim2.new(0, 8)
+corner.Parent = frame
 
--- Başlık
+-- Neon Çizgi Efekti
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(0, 255, 150)
+stroke.Thickness = 2
+stroke.Parent = frame
+
+-- Başlık Metni
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -70, 0, 35)
-title.Position = UDim2.new(0, 12, 0, 0)
+title.Size = UDim2.new(1, -60, 0, 35)
+title.Position = UDim2.new(0, 10, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "NEON HUB"
-title.TextColor3 = Color3.fromRGB(0, 255, 200)
-title.TextSize = 15
+title.Text = "BLOX STRIKE HUB"
+title.TextColor3 = Color3.fromRGB(0, 255, 150)
+title.TextSize = 13
 title.Font = Enum.Font.GothamBold
 title.TextXAlignment = Enum.TextXAlignment.Left
-title.Parent = mainFrame
+title.Parent = frame
 
--- Küçültme (Minimize)
-local minButton = Instance.new("TextButton")
-minButton.Size = UDim2.new(0, 25, 0, 25)
-minButton.Position = UDim2.new(1, -58, 0, 5)
-minButton.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-minButton.Text = "-"
-minButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-minButton.TextSize = 16
-minButton.Font = Enum.Font.GothamBold
-minButton.Parent = mainFrame
-
-local minCorner = Instance.new("UICorner")
-minCorner.CornerRadius = UDim2.new(0, 6)
-minCorner.Parent = minButton
-
--- Kapatma (Close)
-local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 25, 0, 25)
-closeButton.Position = UDim2.new(1, -30, 0, 5)
-closeButton.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
-closeButton.Text = "X"
-closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.TextSize = 12
-closeButton.Font = Enum.Font.GothamBold
-closeButton.Parent = mainFrame
+-- Kapatma Butonu (X)
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 25, 0, 25)
+closeBtn.Position = UDim2.new(1, -30, 0, 5)
+closeBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.TextSize = 12
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.Parent = frame
 
 local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim2.new(0, 6)
-closeCorner.Parent = closeButton
+closeCorner.CornerRadius = UDim2.new(0, 5)
+closeCorner.Parent = closeBtn
 
--- Uçma Butonu
-local flyButton = Instance.new("TextButton")
-flyButton.Name = "FlyButton"
-flyButton.Size = UDim2.new(0.9, 0, 0, 42)
-flyButton.Position = UDim2.new(0.05, 0, 0.45, 0)
-flyButton.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-flyButton.Text = "Uçma Modu: KAPALI"
-flyButton.TextColor3 = Color3.fromRGB(255, 100, 100)
-flyButton.TextSize = 13
-flyButton.Font = Enum.Font.GothamMedium
-flyButton.Parent = mainFrame
+-- Uçma Modu Butonu
+local flyBtn = Instance.new("TextButton")
+flyBtn.Size = UDim2.new(0.9, 0, 0, 45)
+flyBtn.Position = UDim2.new(0.05, 0, 0.45, 0)
+flyBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+flyBtn.Text = "UÇMA MODU: KAPALI"
+flyBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+flyBtn.TextSize = 13
+flyBtn.Font = Enum.Font.GothamBold
+flyBtn.Parent = frame
 
 local flyCorner = Instance.new("UICorner")
-flyCorner.CornerRadius = UDim2.new(0, 8)
-flyCorner.Parent = flyButton
+flyCorner.CornerRadius = UDim2.new(0, 6)
+flyCorner.Parent = flyBtn
 
 local flyStroke = Instance.new("UIStroke")
-flyStroke.Color = Color3.fromRGB(255, 100, 100)
+flyStroke.Color = Color3.fromRGB(255, 80, 80)
 flyStroke.Thickness = 1
-flyStroke.Parent = flyButton
+flyStroke.Parent = flyBtn
 
--- İşlevler
-local minimized = false
-local flying = false
-local bodyVel, bodyGyro
-
-minButton.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    if minimized then
-        flyButton.Visible = false
-        mainFrame:TweenSize(UDim2.new(0, 260, 0, 35), "Out", "Quad", 0.2, true)
-        minButton.Text = "+"
-    else
-        mainFrame:TweenSize(UDim2.new(0, 260, 0, 150), "Out", "Quad", 0.2, true)
-        task.wait(0.15)
-        flyButton.Visible = true
-        minButton.Text = "-"
-    end
-end)
-
-closeButton.MouseButton1Click:Connect(function()
+-- Buton İşlevleri
+closeBtn.MouseButton1Click:Connect(function()
     screenGui:Destroy()
 end)
 
-flyButton.MouseButton1Click:Connect(function()
+local flying = false
+local bodyVel, bodyGyro
+
+flyBtn.MouseButton1Click:Connect(function()
     flying = not flying
-    local character = localPlayer.Character
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    local char = player.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
     
-    local hrp = character.HumanoidRootPart
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local hrp = char.HumanoidRootPart
+    local hum = char:FindFirstChildOfClass("Humanoid")
 
     if flying then
-        flyButton.Text = "Uçma Modu: AÇIK"
-        flyButton.TextColor3 = Color3.fromRGB(100, 255, 100)
-        flyStroke.Color = Color3.fromRGB(100, 255, 100)
+        flyBtn.Text = "UÇMA MODU: AÇIK"
+        flyBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+        flyStroke.Color = Color3.fromRGB(80, 255, 80)
 
         bodyVel = Instance.new("BodyVelocity")
-        bodyVel.Velocity = Vector3.new(0, 0, 0)
+        bodyVel.Velocity = Vector3.zero
         bodyVel.MaxForce = Vector3.new(1e9, 1e9, 1e9)
         bodyVel.Parent = hrp
 
@@ -142,14 +113,14 @@ flyButton.MouseButton1Click:Connect(function()
         bodyGyro.CFrame = hrp.CFrame
         bodyGyro.Parent = hrp
 
-        if humanoid then humanoid.PlatformStand = true end
+        if hum then hum.PlatformStand = true end
     else
-        flyButton.Text = "Uçma Modu: KAPALI"
-        flyButton.TextColor3 = Color3.fromRGB(255, 100, 100)
-        flyStroke.Color = Color3.fromRGB(255, 100, 100)
+        flyBtn.Text = "UÇMA MODU: KAPALI"
+        flyBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+        flyStroke.Color = Color3.fromRGB(255, 80, 80)
 
         if bodyVel then bodyVel:Destroy() end
         if bodyGyro then bodyGyro:Destroy() end
-        if humanoid then humanoid.PlatformStand = false end
+        if hum then hum.PlatformStand = false end
     end
 end)
