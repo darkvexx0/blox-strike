@@ -1,115 +1,141 @@
---// Blox Strike Basit Aimbot Test Scripti
+-- Yusufex Hub (Executor Versiyonu)
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
 
-local localPlayer = Players.LocalPlayer
-local camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
---// 1. ARAYÜZ (GUI) OLUŞTURMA
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "DenemeAimbotGui"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = CoreGui
+-- Eğer daha önceden açılmış bir YusufexHub varsa önce onu kapatalım (çift açılmayı önler)
+if PlayerGui:FindFirstChild("YusufexHub") then
+	PlayerGui.YusufexHub:Destroy()
+end
 
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 200, 0, 100)
-mainFrame.Position = UDim2.new(0.5, -100, 0.2, 0)
-mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-mainFrame.BorderSizePixel = 0
-mainFrame.Active = true
-mainFrame.Draggable = true -- Fareyle sürüklenebilir
-mainFrame.Parent = screenGui
+-- 1. GUI OLUŞTURMA
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "YusufexHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = PlayerGui
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 8)
-corner.Parent = mainFrame
+-- Main Frame (Ana Pencere)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 250, 0, 180)
+MainFrame.Position = UDim2.new(0.5, -125, 0.4, -90)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true -- Pencereyi sürükleyebilme
+MainFrame.Parent = ScreenGui
 
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 30)
-title.BackgroundTransparency = 1
-title.Text = "Blox Strike - Test"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.TextSize = 14
-title.Font = Enum.Font.GothamBold
-title.Parent = mainFrame
+-- Köşe Yuvarlama
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainFrame
 
-local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0, 160, 0, 40)
-toggleButton.Position = UDim2.new(0.5, -80, 0.5, -5)
-toggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-toggleButton.Text = "Deneme: KAPALI"
-toggleButton.TextColor3 = Color3.fromRGB(255, 100, 100)
-toggleButton.TextSize = 14
-toggleButton.Font = Enum.Font.GothamBold
-toggleButton.Parent = mainFrame
+-- Başlık
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "Title"
+TitleLabel.Size = UDim2.new(1, 0, 0, 40)
+TitleLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+TitleLabel.Text = "Yusufex Hub"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 20
+TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.Parent = MainFrame
 
-local btnCorner = Instance.new("UICorner")
-btnCorner.CornerRadius = UDim.new(0, 6)
-btnCorner.Parent = toggleButton
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 10)
+TitleCorner.Parent = TitleLabel
 
---// 2. FOV ÇEMBERİ (Crosshair Etrafındaki Yuvarlak Çerçeve)
-local fovRadius = 120 -- Çemberin büyüklüğü
-local fovCircle = Drawing.new("Circle")
-fovCircle.Visible = false
-fovCircle.Radius = fovRadius
-fovCircle.Color = Color3.fromRGB(255, 255, 255)
-fovCircle.Thickness = 1.5
-fovCircle.Filled = false
-fovCircle.Transparency = 0.7
+-- Fly Butonu
+local FlyButton = Instance.new("TextButton")
+FlyButton.Name = "FlyButton"
+FlyButton.Size = UDim2.new(0.8, 0, 0, 45)
+FlyButton.Position = UDim2.new(0.1, 0, 0.45, 0)
+FlyButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- Başlangıçta Kırmızı
+FlyButton.Text = "Fly: KAPALI"
+FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlyButton.TextSize = 18
+FlyButton.Font = Enum.Font.SourceSansSemibold
+FlyButton.Parent = MainFrame
 
-local aimbotEnabled = false
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 8)
+ButtonCorner.Parent = FlyButton
 
-toggleButton.MouseButton1Click:Connect(function()
-	aimbotEnabled = not aimbotEnabled
-	if aimbotEnabled then
-		toggleButton.Text = "Deneme: AÇIK"
-		toggleButton.TextColor3 = Color3.fromRGB(100, 255, 100)
-		fovCircle.Visible = true
-	else
-		toggleButton.Text = "Deneme: KAPALI"
-		toggleButton.TextColor3 = Color3.fromRGB(255, 100, 100)
-		fovCircle.Visible = false
-	end
-end)
 
--- Ekranın tam orta noktasını (crosshair) bulma ve çemberi sabitleme
-RunService.RenderStepped:Connect(function()
-	local viewportSize = camera.ViewportSize
-	local centerPosition = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
+-- 2. FLY (UÇMA) MANTIĞI
+local flying = false
+local flySpeed = 50
+local bodyVelocity, bodyGyro
+local renderSteppedConnection
+
+local function startFlying()
+	local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	local hrp = character:WaitForChild("HumanoidRootPart")
 	
-	fovCircle.Position = centerPosition
+	-- Uçma için fizik nesneleri oluşturma
+	bodyVelocity = Instance.new("BodyVelocity")
+	bodyVelocity.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+	bodyVelocity.Velocity = Vector3.zero
+	bodyVelocity.Parent = hrp
+	
+	bodyGyro = Instance.new("BodyGyro")
+	bodyGyro.MaxTorque = Vector3.new(1e6, 1e6, 1e6)
+	bodyGyro.CFrame = hrp.CFrame
+	bodyGyro.Parent = hrp
 
-	if not aimbotEnabled then return end
-
-	-- En yakın kafayı bulma mantığı
-	local closestPlayer = nil
-	local shortestDistance = fovRadius
-
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= localPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
-			-- Takım kontrolü (Blox Strike'da kendi takımındakilere nişan almamak için - takım mantığına göre değişebilir)
-			if player.Team ~= localPlayer.Team then
-				local head = player.Character:FindFirstChild("Head") or player.Character:FindFirstChild("HumanoidRootPart")
-				if head then
-					local screenPoint, onScreen = camera:WorldToViewportPoint(head.Position)
-					if onScreen then
-						local screenVector = Vector2.new(screenPoint.X, screenPoint.Y)
-						local distance = (screenVector - centerPosition).Magnitude
-						
-						if distance < shortestDistance then
-							shortestDistance = distance
-							closestPlayer = head
-						end
-					end
-				end
+	-- Kamera yönüne göre hareket etme
+	renderSteppedConnection = RunService.RenderStepped:Connect(function()
+		if flying and hrp and hrp.Parent then
+			local camera = workspace.CurrentCamera
+			local moveVector = Vector3.zero
+			
+			if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+				moveVector = moveVector + camera.CFrame.LookVector
 			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+				moveVector = moveVector - camera.CFrame.LookVector
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+				moveVector = moveVector - camera.CFrame.RightVector
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+				moveVector = moveVector + camera.CFrame.RightVector
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+				moveVector = moveVector + Vector3.new(0, 1, 0)
+			end
+			if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+				moveVector = moveVector - Vector3.new(0, 1, 0)
+			end
+			
+			bodyGyro.CFrame = camera.CFrame
+			bodyVelocity.Velocity = moveVector.Magnitude > 0 and (moveVector.Unit * flySpeed) or Vector3.zero
+		else
+			stopFlying()
 		end
-	end
+	end)
+end
 
-	-- Eğer çember içine giren bir adam varsa kamerayı onun kafasına kilitle
-	if closestPlayer then
-		camera.CFrame = CFrame.new(camera.CFrame.Position, closestPlayer.Position)
+function stopFlying()
+	flying = false
+	FlyButton.Text = "Fly: KAPALI"
+	FlyButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+	if renderSteppedConnection then renderSteppedConnection:Disconnect() end
+	if bodyVelocity then bodyVelocity:Destroy() end
+	if bodyGyro then bodyGyro:Destroy() end
+end
+
+-- Butona Tıklandığında Tetiklenecek Olay
+FlyButton.MouseButton1Click:Connect(function()
+	flying = not flying
+	if flying then
+		FlyButton.Text = "Fly: AÇIK"
+		FlyButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50) -- Yeşil
+		startFlying()
+	else
+		stopFlying()
 	end
 end)
