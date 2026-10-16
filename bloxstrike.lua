@@ -1,141 +1,174 @@
--- Yusufex Hub (Executor Versiyonu)
+--// Modern Neon UI & Basic Fly Template
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
 
-local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local localPlayer = Players.LocalPlayer
 
--- Eğer daha önceden açılmış bir YusufexHub varsa önce onu kapatalım (çift açılmayı önler)
-if PlayerGui:FindFirstChild("YusufexHub") then
-	PlayerGui.YusufexHub:Destroy()
+-- Frame Saydamlaştırma / Animasyon Yardımcısı
+local function createNeonUI()
+    -- Ana ScreenGui
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "NeonHubGui"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = CoreGui
+
+    -- Ana Pencere
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.new(0, 260, 0, 180)
+    mainFrame.Position = UDim2.new(0.5, -130, 0.4, -90)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Active = true
+    mainFrame.Draggable = true
+    mainFrame.Parent = screenGui
+
+    -- Neon Parlama Efekti (UIStroke)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(0, 255, 200) -- Neon Camgöbeği
+    stroke.Thickness = 2
+    stroke.Parent = mainFrame
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim2.new(0, 10)
+    corner.Parent = mainFrame
+
+    -- Başlık
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, -70, 0, 35)
+    title.Position = UDim2.new(0, 10, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "NEON HUB"
+    title.TextColor3 = Color3.fromRGB(0, 255, 200)
+    title.TextSize = 16
+    title.Font = Enum.Font.GothamBold
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = mainFrame
+
+    -- Küçültme (Minimize) Butonu
+    local minButton = Instance.new("TextButton")
+    minButton.Size = UDim2.new(0, 25, 0, 25)
+    minButton.Position = UDim2.new(1, -55, 0, 5)
+    minButton.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    minButton.Text = "-"
+    minButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    minButton.TextSize = 16
+    minButton.Font = Enum.Font.GothamBold
+    minButton.Parent = mainFrame
+
+    local minCorner = Instance.new("UICorner")
+    minCorner.CornerRadius = UDim2.new(0, 6)
+    minCorner.Parent = minButton
+
+    -- Kapatma Butonu
+    local closeButton = Instance.new("TextButton")
+    closeButton.Size = UDim2.new(0, 25, 0, 25)
+    closeButton.Position = UDim2.new(1, -28, 0, 5)
+    closeButton.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
+    closeButton.Text = "X"
+    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.TextSize = 12
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.Parent = mainFrame
+
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim2.new(0, 6)
+    closeCorner.Parent = closeButton
+
+    -- İçerik Konteynırı (Küçülünce gizlenecek kısım)
+    local contentFrame = Instance.new("Frame")
+    contentFrame.Size = UDim2.new(1, 0, 1, -35)
+    contentFrame.Position = UDim2.new(0, 0, 0, 35)
+    contentFrame.BackgroundTransparency = 1
+    contentFrame.Parent = mainFrame
+
+    -- Uçma (Fly) Toggle Butonu
+    local flyButton = Instance.new("TextButton")
+    flyButton.Size = UDim2.new(0.9, 0, 0, 40)
+    flyButton.Position = UDim2.new(0.05, 0, 0.1, 0)
+    flyButton.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    flyButton.Text = "Uçma Modu: KAPALI"
+    flyButton.TextColor3 = Color3.fromRGB(255, 100, 100)
+    flyButton.TextSize = 14
+    flyButton.Font = Enum.Font.GothamMedium
+    flyButton.Parent = contentFrame
+
+    local flyCorner = Instance.new("UICorner")
+    flyCorner.CornerRadius = UDim2.new(0, 8)
+    flyCorner.Parent = flyButton
+
+    local flyStroke = Instance.new("UIStroke")
+    flyStroke.Color = Color3.fromRGB(255, 100, 100)
+    flyStroke.Thickness = 1
+    flyStroke.Parent = flyButton
+
+    -- Mantıksal Değişkenler
+    local minimized = false
+    local flying = false
+    local bodyVel, bodyGyro
+
+    -- Küçültme Fonksiyonu
+    minButton.MouseButton1Click:Connect(function()
+        minimized = not minimized
+        if minimized then
+            contentFrame.Visible = false
+            mainFrame:TweenSize(UDim2.new(0, 260, 0, 35), "Out", "Quad", 0.2, true)
+            minButton.Text = "+"
+        else
+            mainFrame:TweenSize(UDim2.new(0, 260, 0, 180), "Out", "Quad", 0.2, true)
+            task.wait(0.1)
+            contentFrame.Visible = true
+            minButton.Text = "-"
+        end
+    end)
+
+    -- Kapatma Fonksiyonu
+    closeButton.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+    end)
+
+    -- Temel Uçma Mantığı
+    flyButton.MouseButton1Click:Connect(function()
+        flying = not flying
+        local character = localPlayer.Character
+        if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+        
+        local hrp = character.HumanoidRootPart
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+        if flying then
+            flyButton.Text = "Uçma Modu: AÇIK"
+            flyButton.TextColor3 = Color3.fromRGB(100, 255, 100)
+            flyStroke.Color = Color3.fromRGB(100, 255, 100)
+
+            -- Karakterin fiziksel düşüşünü engelleme
+            bodyVel = Instance.new("BodyVelocity")
+            bodyVel.Velocity = Vector3.zero
+            bodyVel.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+            bodyVel.Parent = hrp
+
+            bodyGyro = Instance.new("BodyGyro")
+            bodyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+            bodyGyro.CFrame = hrp.CFrame
+            bodyGyro.Parent = hrp
+
+            if humanoid then
+                humanoid.PlatformStand = true -- Hareketsiz duruş efekti
+            end
+        else
+            flyButton.Text = "Uçma Modu: KAPALI"
+            flyButton.TextColor3 = Color3.fromRGB(255, 100, 100)
+            flyStroke.Color = Color3.fromRGB(255, 100, 100)
+
+            if bodyVel then bodyVel:Destroy() end
+            if bodyGyro then bodyGyro:Destroy() end
+            if humanoid then
+                humanoid.PlatformStand = false
+            end
+        end
+    end)
 end
 
--- 1. GUI OLUŞTURMA
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "YusufexHub"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = PlayerGui
-
--- Main Frame (Ana Pencere)
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 250, 0, 180)
-MainFrame.Position = UDim2.new(0.5, -125, 0.4, -90)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = true -- Pencereyi sürükleyebilme
-MainFrame.Parent = ScreenGui
-
--- Köşe Yuvarlama
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 10)
-MainCorner.Parent = MainFrame
-
--- Başlık
-local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Name = "Title"
-TitleLabel.Size = UDim2.new(1, 0, 0, 40)
-TitleLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
-TitleLabel.Text = "Yusufex Hub"
-TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleLabel.TextSize = 20
-TitleLabel.Font = Enum.Font.SourceSansBold
-TitleLabel.Parent = MainFrame
-
-local TitleCorner = Instance.new("UICorner")
-TitleCorner.CornerRadius = UDim.new(0, 10)
-TitleCorner.Parent = TitleLabel
-
--- Fly Butonu
-local FlyButton = Instance.new("TextButton")
-FlyButton.Name = "FlyButton"
-FlyButton.Size = UDim2.new(0.8, 0, 0, 45)
-FlyButton.Position = UDim2.new(0.1, 0, 0.45, 0)
-FlyButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- Başlangıçta Kırmızı
-FlyButton.Text = "Fly: KAPALI"
-FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlyButton.TextSize = 18
-FlyButton.Font = Enum.Font.SourceSansSemibold
-FlyButton.Parent = MainFrame
-
-local ButtonCorner = Instance.new("UICorner")
-ButtonCorner.CornerRadius = UDim.new(0, 8)
-ButtonCorner.Parent = FlyButton
-
-
--- 2. FLY (UÇMA) MANTIĞI
-local flying = false
-local flySpeed = 50
-local bodyVelocity, bodyGyro
-local renderSteppedConnection
-
-local function startFlying()
-	local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-	local hrp = character:WaitForChild("HumanoidRootPart")
-	
-	-- Uçma için fizik nesneleri oluşturma
-	bodyVelocity = Instance.new("BodyVelocity")
-	bodyVelocity.MaxForce = Vector3.new(1e6, 1e6, 1e6)
-	bodyVelocity.Velocity = Vector3.zero
-	bodyVelocity.Parent = hrp
-	
-	bodyGyro = Instance.new("BodyGyro")
-	bodyGyro.MaxTorque = Vector3.new(1e6, 1e6, 1e6)
-	bodyGyro.CFrame = hrp.CFrame
-	bodyGyro.Parent = hrp
-
-	-- Kamera yönüne göre hareket etme
-	renderSteppedConnection = RunService.RenderStepped:Connect(function()
-		if flying and hrp and hrp.Parent then
-			local camera = workspace.CurrentCamera
-			local moveVector = Vector3.zero
-			
-			if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-				moveVector = moveVector + camera.CFrame.LookVector
-			end
-			if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-				moveVector = moveVector - camera.CFrame.LookVector
-			end
-			if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-				moveVector = moveVector - camera.CFrame.RightVector
-			end
-			if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-				moveVector = moveVector + camera.CFrame.RightVector
-			end
-			if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-				moveVector = moveVector + Vector3.new(0, 1, 0)
-			end
-			if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-				moveVector = moveVector - Vector3.new(0, 1, 0)
-			end
-			
-			bodyGyro.CFrame = camera.CFrame
-			bodyVelocity.Velocity = moveVector.Magnitude > 0 and (moveVector.Unit * flySpeed) or Vector3.zero
-		else
-			stopFlying()
-		end
-	end)
-end
-
-function stopFlying()
-	flying = false
-	FlyButton.Text = "Fly: KAPALI"
-	FlyButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-	if renderSteppedConnection then renderSteppedConnection:Disconnect() end
-	if bodyVelocity then bodyVelocity:Destroy() end
-	if bodyGyro then bodyGyro:Destroy() end
-end
-
--- Butona Tıklandığında Tetiklenecek Olay
-FlyButton.MouseButton1Click:Connect(function()
-	flying = not flying
-	if flying then
-		FlyButton.Text = "Fly: AÇIK"
-		FlyButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50) -- Yeşil
-		startFlying()
-	else
-		stopFlying()
-	end
-end)
+createNeonUI()
